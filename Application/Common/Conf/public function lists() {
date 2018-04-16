@@ -1,0 +1,71 @@
+public function lists() {
+            //每页的条数
+            $limit = 3;
+
+            //总条数
+            $count = D('blog')->getCount();
+
+            //总页数    条数除以每页数  向上取整
+            $pageCount = ceil($count / $limit);
+
+            //获取当前页码  默认是1
+            $page = !empty($_GET['p']) ? $_GET['p'] : 1;
+
+            //计算数据偏移量
+            $offset = ($page-1) * $limit;
+
+            $cateList = D('cate')->getLists();
+            
+            foreach ($cateList as $key => $value) {
+                $cateTmp[$value['id']] = $value;
+            }
+            // $blogObj = D('blog');
+            // $lists = $blogObj->getLists();
+            
+            //获取数据
+            $lists = D('blog')->getLists(array(), $offset, $limit);
+            foreach ($lists as $key => $value) {
+                $value['calssify_name'] = $cateTmp[$value['calssify_id']]['name'];
+                $lists[$key] = $value;
+            }
+            $result = array('error'=>0,'msg'=>'','data'=>array());
+            // if (empty($id)) {
+            //     $result['error']=1;
+            //     $result['msg']='id ';
+            //     echo json_encode($result);
+            //     die();
+            // }
+            $result['data']['blog'] = $lists;
+            $result['data']['ad']  = $bannler;
+            //$result['data'] = $data;
+            echo json_encode($result);
+            die();
+
+            
+            //include "./view/blog/lists.html";
+        }
+
+
+
+  public function index(){
+        $BlogModel = D("Blog");
+        $ClassifyModel = D("Classify");
+        $UserModel = D("User");
+        $AdModel = D("Ad");
+        $ad_data = $AdModel->where('status=1')->select();
+        $blog_data = $BlogModel->where('status=1')->select();
+        foreach ($blog_data as $key => $value) {
+                $user = $UserModel->where("id = {$value['user_id']}")->find();
+                $classify = $ClassifyModel->where("id = {$value['classify_id']}")->find();
+                $blog_data[$key] = $BlogModel->format1($value);
+                $blog_data[$key]['author_name'] = $user['name'];
+                $blog_data[$key]['classify_name'] = $classify['name'];
+        }
+        $result = array(
+            "banner"=>$ad_data,
+            "blog_lists"=>$blog_data,
+            );
+        _res($result);
+        // $this->assign('data',$data);
+        // $this->display('/home/index');
+    }
